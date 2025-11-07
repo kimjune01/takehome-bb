@@ -127,19 +127,19 @@ function displayIssues() {
     }
 
     container.innerHTML = filteredIssues.map(issue => `
-        <a href="/issues/${issue.identifier}" class="block">
-            <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
+            <div class="flex justify-between items-start gap-4">
+                <div class="flex-1 min-w-0">
+                    <a href="/issues/${issue.identifier}" class="block hover:opacity-80">
                         <div class="flex items-center space-x-3 mb-2">
                             <span class="text-lg font-semibold text-gray-900">${issue.identifier}</span>
                             ${issue.signal_count > 0 ? `
                                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                    ${issue.signal_count}
+                                    ${issue.signal_count} signal${issue.signal_count !== 1 ? 's' : ''}
                                 </span>
                             ` : `
                                 <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                    0
+                                    0 signals
                                 </span>
                             `}
                         </div>
@@ -147,26 +147,43 @@ function displayIssues() {
                         ${issue.description ? `
                             <p class="text-gray-600 text-sm line-clamp-2">${issue.description.substring(0, 150)}...</p>
                         ` : ''}
+                    </a>
+                    <div class="mt-4 flex items-center space-x-4 text-sm text-gray-500">
+                        ${issue.state_name ? `
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                ${issue.state_name}
+                            </span>
+                        ` : ''}
+                        ${issue.team_name ? `
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                ${issue.team_name}
+                            </span>
+                        ` : ''}
+                        ${issue.assignee_name ? `
+                            <span class="text-gray-600">👤 ${issue.assignee_name}</span>
+                        ` : ''}
+                        <span>${issue.created_at.substring(0, 10)}</span>
                     </div>
                 </div>
-                <div class="mt-4 flex items-center space-x-4 text-sm text-gray-500">
-                    ${issue.state_name ? `
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            ${issue.state_name}
+                <div class="flex-shrink-0">
+                    ${issue.signal_count > 0 ? `
+                        <a href="/issues/${issue.identifier}/signals" class="inline-flex items-center px-4 py-2 border-2 border-blue-600 text-blue-600 text-sm font-medium rounded-lg hover:bg-blue-50 transition duration-150">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            View Signals
+                        </a>
+                    ` : `
+                        <span class="inline-flex items-center px-4 py-2 border-2 border-gray-300 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            No Signals
                         </span>
-                    ` : ''}
-                    ${issue.team_name ? `
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            ${issue.team_name}
-                        </span>
-                    ` : ''}
-                    ${issue.assignee_name ? `
-                        <span class="text-gray-600">👤 ${issue.assignee_name}</span>
-                    ` : ''}
-                    <span>${issue.created_at.substring(0, 10)}</span>
+                    `}
                 </div>
             </div>
-        </a>
+        </div>
     `).join('');
 }
 
