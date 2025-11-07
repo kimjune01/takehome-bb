@@ -26,6 +26,8 @@ def get_all_issues_with_counts() -> List[Dict]:
         i.title,
         i.description,
         i.state_name,
+        i.team_name,
+        i.assignee_name,
         i.created_at,
         i.priority,
         COUNT(a.signal_id) as signal_count
@@ -172,4 +174,45 @@ def get_embeddings_status() -> Dict[str, int]:
         "issue_total": issue_total,
         "issue_embedded": issue_embedded,
         "associations_count": associations_count
+    }
+
+
+# ==================== ADMIN ====================
+
+def delete_all_data() -> Dict[str, int]:
+    """Delete all data from the database (preserves schema).
+
+    Returns counts of deleted records.
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Get counts before deletion
+    signal_count = cursor.execute("SELECT COUNT(*) FROM signals").fetchone()[0]
+    issue_count = cursor.execute("SELECT COUNT(*) FROM issues").fetchone()[0]
+    association_count = cursor.execute("SELECT COUNT(*) FROM associations").fetchone()[0]
+    signal_embedding_count = cursor.execute("SELECT COUNT(*) FROM signal_embeddings").fetchone()[0]
+    issue_embedding_count = cursor.execute("SELECT COUNT(*) FROM issue_embeddings").fetchone()[0]
+
+    # Delete all data (cascade handled by foreign keys)
+    cursor.execute("DELETE FROM associations")
+    cursor.execute("DELETE FROM signal_embeddings")
+    cursor.execute("DELETE FROM issue_embeddings")
+    cursor.execute("DELETE FROM signals")
+    cursor.execute("DELETE FROM issues")
+
+    conn.commit()
+    conn.close()
+
+    # Vacuum to reclaim space (must be done after commit, outside transaction)
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("VACUUM")
+    conn.close()
+
+    return {
+        "signals": signal_count,
+        "issues": issue_count,
+        "associations": association_count,
+        "signal_embeddings": signal_embedding_count,
+        "issue_embeddings": issue_embedding_count
     }

@@ -143,6 +143,23 @@ async def import_signals(request: Request, file: UploadFile = File(...)):
     })
 
 
+@app.post("/admin/delete-all-data", response_class=HTMLResponse)
+async def delete_all_data(request: Request):
+    """Delete all data from the database (preserves schema)."""
+    try:
+        counts = db.delete_all_data()
+        message = f"✅ Successfully deleted all data! Removed {counts['signals']} signals, {counts['issues']} issues, {counts['associations']} associations, and {counts['signal_embeddings'] + counts['issue_embeddings']} embeddings."
+    except Exception as e:
+        message = f"❌ Error deleting data: {e}"
+
+    status = db.get_embeddings_status()
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "status": status,
+        "message": message
+    })
+
+
 # ==================== ISSUES ====================
 
 @app.get("/issues", response_class=HTMLResponse)
