@@ -1,4 +1,5 @@
 DEMO video: https://drive.google.com/file/d/1bizwB3Z6U8RkEosH0aCOM5jHnAaB6KhW/view?usp=sharing
+<img width="1233" height="899" alt="Screenshot 2025-11-07 at 12 01 54 PM" src="https://github.com/user-attachments/assets/a68b7573-a4b4-4689-aeb2-8bd9917306a3" />
 
 # Associations Pipeline
 
