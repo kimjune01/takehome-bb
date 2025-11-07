@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Issues - Associations Pipeline{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Issues</h1>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div class="font-semibold text-gray-700 mb-3">Filter by:</div>
+    <div class="flex flex-wrap gap-4">
+        <label class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">Team:</span>
+            <select id="team-filter" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Teams</option>
+            </select>
+        </label>
+        <label class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">State:</span>
+            <select id="state-filter" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All States</option>
+            </select>
+        </label>
+        <label class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">Assignee:</span>
+            <select id="assignee-filter" class="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Assignees</option>
+            </select>
+        </label>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div id="stats" class="text-gray-700">
+        <span class="font-semibold">Total Issues:</span> <span id="stats-count">{{ issues|length }}</span>
+    </div>
+</div>
+
+<!-- Issues Container -->
+<div id="issues-container" class="space-y-4">
+    <!-- Issues will be rendered here by JavaScript -->
+</div>
+
+<script>
+const allIssues = {{ issues|tojson }};
+let filteredIssues = allIssues;
+
+// Populate filter dropdowns
+function populateFilters() {
+    // Teams
+    const teams = [...new Set(allIssues.map(i => i.team_name).filter(Boolean))].sort();
+    const teamFilter = document.getElementById('team-filter');
+    teams.forEach(team => {
+        const option = document.createElement('option');
+        option.value = team;
+        option.textContent = team;
+        teamFilter.appendChild(option);
+    });
+
+    // States
+    const states = [...new Set(allIssues.map(i => i.state_name).filter(Boolean))].sort();
+    const stateFilter = document.getElementById('state-filter');
+    states.forEach(state => {
+        const option = document.createElement('option');
+        option.value = state;
+        option.textContent = state;
+        stateFilter.appendChild(option);
+    });
+
+    // Assignees
+    const assignees = [...new Set(allIssues.map(i => i.assignee_name).filter(Boolean))].sort();
+    const assigneeFilter = document.getElementById('assignee-filter');
+    assignees.forEach(assignee => {
+        const option = document.createElement('option');
+        option.value = assignee;
+        option.textContent = assignee;
+        assigneeFilter.appendChild(option);
+    });
+
+    // Add event listeners
+    teamFilter.addEventListener('change', applyFilters);
+    stateFilter.addEventListener('change', applyFilters);
+    assigneeFilter.addEventListener('change', applyFilters);
+}
+
+// Apply filters
+function applyFilters() {
+    const teamFilter = document.getElementById('team-filter').value;
+    const stateFilter = document.getElementById('state-filter').value;
+    const assigneeFilter = document.getElementById('assignee-filter').value;
+
+    filteredIssues = allIssues.filter(issue => {
+        const teamMatch = teamFilter === 'all' || issue.team_name === teamFilter;
+        const stateMatch = stateFilter === 'all' || issue.state_name === stateFilter;
+        const assigneeMatch = assigneeFilter === 'all' || issue.assignee_name === assigneeFilter;
+        return teamMatch && stateMatch && assigneeMatch;
+    });
+
+    displayStats();
+    displayIssues();
+}
+
+// Display stats
+function displayStats() {
+    const statsCount = document.getElementById('stats-count');
+    if (filteredIssues.length !== allIssues.length) {
+        statsCount.textContent = `${filteredIssues.length} (of ${allIssues.length})`;
+    } else {
+        statsCount.textContent = allIssues.length;
+    }
+}
+
+// Display issues
+function displayIssues() {
+    const container = document.getElementById('issues-container');
+
+    if (filteredIssues.length === 0) {
+        container.innerHTML = `
+            <div class="bg-white rounded-lg shadow p-12 text-center">
+                <p class="text-gray-500">No issues match the selected filters.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filteredIssues.map(issue => `
+        <a href="/issues/${issue.identifier}" class="block">
+            <div class="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <span class="text-lg font-semibold text-gray-900">${issue.identifier}</span>
+                            ${issue.signal_count > 0 ? `
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                    ${issue.signal_count}
+                                </span>
+                            ` : `
+                                <span class="bg-gray-100 text-gray-600 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                    0
+                                </span>
+                            `}
+                        </div>
+                        <h3 class="text-xl font-medium text-gray-800 mb-2">${issue.title}</h3>
+                        ${issue.description ? `
+                            <p class="text-gray-600 text-sm line-clamp-2">${issue.description.substring(0, 150)}...</p>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center space-x-4 text-sm text-gray-500">
+                    ${issue.state_name ? `
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            ${issue.state_name}
+                        </span>
+                    ` : ''}
+                    ${issue.team_name ? `
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            ${issue.team_name}
+                        </span>
+                    ` : ''}
+                    ${issue.assignee_name ? `
+                        <span class="text-gray-600">👤 ${issue.assignee_name}</span>
+                    ` : ''}
+                    <span>${issue.created_at.substring(0, 10)}</span>
+                </div>
+            </div>
+        </a>
+    `).join('');
+}
+
+// Initialize
+populateFilters();
+displayIssues();
+</script>
+{% endblock %}

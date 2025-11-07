@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ issue.identifier }} - Associations Pipeline{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex mb-6 text-sm" aria-label="Breadcrumb">
+    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li><a href="/issues" class="text-gray-500 hover:text-blue-600">Issues</a></li>
+        <li class="flex items-center">
+            <svg class="w-3 h-3 mx-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"></path></svg>
+            <span class="text-gray-700 font-medium">{{ issue.identifier }}</span>
+        </li>
+        {% if context == "signal" %}
+        <li class="flex items-center">
+            <svg class="w-3 h-3 mx-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"></path></svg>
+            <span class="text-gray-500">from Signal #{{ signal.id }}</span>
+        </li>
+        {% endif %}
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex items-center space-x-3 mb-4">
+        <h1 class="text-2xl font-bold text-gray-900">{{ issue.identifier }}</h1>
+        {% if issue.state_name %}
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+            {{ issue.state_name }}
+        </span>
+        {% endif %}
+    </div>
+
+    <h2 class="text-xl font-medium text-gray-800 mb-4">{{ issue.title }}</h2>
+
+    {% if issue.description %}
+    <div class="mb-6">
+        <h3 class="text-sm font-medium text-gray-700 mb-2">Description</h3>
+        <p class="text-gray-600">{{ issue.description }}</p>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
+        <div>
+            <div class="text-xs text-gray-500 mb-1">Created</div>
+            <div class="text-sm font-medium">{{ issue.created_at[:10] }}</div>
+        </div>
+        {% if issue.priority %}
+        <div>
+            <div class="text-xs text-gray-500 mb-1">Priority</div>
+            <div class="text-sm font-medium">{{ issue.priority }}</div>
+        </div>
+        {% endif %}
+        {% if issue.team_key %}
+        <div>
+            <div class="text-xs text-gray-500 mb-1">Team</div>
+            <div class="text-sm font-medium">{{ issue.team_key }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Association Info (if viewing from signal context) -->
+{% if association %}
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+    <h3 class="text-lg font-semibold text-blue-900 mb-3">Association with Signal #{{ signal.id }}</h3>
+
+    <div class="mb-4">
+        <div class="flex items-center space-x-3 mb-2">
+            <span class="text-sm font-medium text-blue-700">Match Score:</span>
+            {% if association.score >= 0.8 %}
+            <span class="text-green-600 font-bold text-lg">🟢 {{ "%.2f"|format(association.score) }}</span>
+            {% elif association.score >= 0.5 %}
+            <span class="text-yellow-600 font-bold text-lg">🟡 {{ "%.2f"|format(association.score) }}</span>
+            {% else %}
+            <span class="text-gray-600 font-bold text-lg">⚪ {{ "%.2f"|format(association.score) }}</span>
+            {% endif %}
+        </div>
+
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-600 h-2 rounded-full" style="width: {{ association.score * 100 }}%"></div>
+        </div>
+    </div>
+
+    {% if association.reason %}
+    <div class="mb-3">
+        <span class="text-sm font-medium text-blue-700">Reason:</span>
+        <p class="text-gray-700 mt-1">{{ association.reason }}</p>
+    </div>
+    {% endif %}
+
+    {% if association.method %}
+    <div class="text-xs text-blue-600">Method: {{ association.method }}</div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- View Associated Signals Button -->
+{% if not context %}
+<a href="/issues/{{ issue.identifier }}/signals" class="block">
+    <div class="bg-white border-2 border-blue-600 rounded-lg p-6 text-center hover:bg-blue-50 transition">
+        <div class="text-blue-600 font-semibold text-lg">View Associated Signals →</div>
+    </div>
+</a>
+{% endif %}
+{% endblock %}
