@@ -1,3 +1,5 @@
+DEMO video: https://drive.google.com/file/d/1bizwB3Z6U8RkEosH0aCOM5jHnAaB6KhW/view?usp=sharing
+
 # Associations Pipeline
 
 An intelligent system that automatically links Linear engineering issues with BuildBetter customer signals using semantic similarity. This helps answer: **"Are we building the right things?"**
@@ -22,18 +24,12 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. **Set up environment** (optional - only needed for Linear sync):
-```bash
-cp .env.example .env
-# Edit .env and add your LINEAR_API_KEY if you want to sync from Linear
-```
-
-3. **Start the server**:
+2. **Start the server**:
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-4. **Open the app**:
+3. **Open the app**:
 - Main UI: http://localhost:8000
 - Admin panel: http://localhost:8000/admin
 
@@ -199,7 +195,6 @@ A semantic similarity pipeline that:
 
 **Tools Used:**
 - Claude Code (Anthropic's CLI tool) - 100% of development
-- Cursor/Copilot - Not used (pure CLI workflow)
 
 **AI Contributions (Estimated 80% of code):**
 
